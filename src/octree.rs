@@ -46,6 +46,7 @@ pub struct Octree<T: Clone + PartialEq> {
     points: Vec<Point3D<T>>,
     capacity: usize,
     divided: bool,
+
     front_top_left: Option<Box<Octree<T>>>,
     front_top_right: Option<Box<Octree<T>>>,
     front_bottom_left: Option<Box<Octree<T>>>,
@@ -230,6 +231,117 @@ impl<T: Clone + PartialEq + std::fmt::Debug> Octree<T> {
         children
     }
 
+    /// Returns the number of children, that are not none.
+    pub fn child_count(&self) -> u8 {
+        let mut r: u8 = 0;
+        if let Some(ref _child) = self.front_top_left {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.front_top_right {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.front_bottom_left {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.front_bottom_right {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.back_top_left {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.back_top_right {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.back_bottom_left {
+            r += 1;
+        };
+
+        if let Some(ref _child) = self.back_bottom_right {
+            r += 1;
+        };
+
+        r
+    }
+
+    /// Return the number of positions this node holds.
+    pub fn max_positions(&self) -> usize {
+        self.points.len()
+    }
+
+    /// Returns the position at index x.
+    pub fn position(&self, x: usize) -> &Point3D<T> {
+        if x >= self.points.len() {
+            panic!("Invalid position");
+        }
+
+        &self.points[x]
+    }
+
+    /// Returns a mutable reference to single child. The children are indexed using the following mapping:
+    ///
+    /// front_top_left : 0
+    /// front_top_right : 1
+    /// front_bottom_left : 2
+    /// front_bottom_right : 3
+    /// back_top_left : 4
+    /// back_top_right : 5
+    /// back_bottom_left : 6
+    /// back_bottom_right : 7
+    ///
+    pub fn child(&self, child: u32) -> Option<&Octree<T>> {
+        match child {
+            0 => match &self.front_top_left {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            1 => match &self.front_top_right {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            2 => match &self.front_bottom_left {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            3 => match &self.front_bottom_right {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            4 => match &self.back_top_left {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            5 => match &self.back_top_right {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            6 => match &self.back_bottom_left {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            7 => match &self.back_bottom_right {
+                Some(c) => return Some(c.as_ref()),
+                None => return None,
+            },
+
+            _ => {
+                panic!("Invalid index.");
+            }
+        }
+    }
+
     /// Returns references to all eight child octants, if they exist.
     fn children(&self) -> Vec<&Octree<T>> {
         let mut children = Vec::with_capacity(8);
@@ -322,6 +434,7 @@ impl<T: Clone + PartialEq + std::fmt::Debug> Octree<T> {
             debug!("Point {:?} is out of bounds of {:?}", point, self.boundary);
             return false;
         }
+
         if self.divided {
             let children = self.children_mut();
             let n = children.len();
@@ -336,11 +449,13 @@ impl<T: Clone + PartialEq + std::fmt::Debug> Octree<T> {
             }
             return false;
         }
+
         if self.points.len() < self.capacity {
             info!("Inserting point {:?} into Octree", point);
             self.points.push(point);
             return true;
         }
+
         self.subdivide();
         self.insert(point)
     }

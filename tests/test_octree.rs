@@ -2,10 +2,11 @@
 mod shared;
 use shared::*;
 
-use spart::octree::Octree;
+use spart::{geometry::Point3D, octree::Octree};
 use tracing::{debug, info};
 
-fn run_octree_3d_test() {
+#[test]
+fn octree_3d_test() {
     info!("Starting Octree 3D test");
 
     // Create an octree with the shared cube boundary and capacity.
@@ -72,7 +73,43 @@ fn run_octree_3d_test() {
     info!("Octree 3D test completed successfully");
 }
 
+fn do_node_test(c : Option<&Octree<&str>>, name : Option<&str>, x : f64, y : f64, z : f64) {
+    assert!(c.is_some());
+    assert_eq!(c.unwrap().child_count(), 0);
+    assert_eq!(c.unwrap().max_positions(), 1);
+
+    let pos = c.unwrap().position(0);
+    assert_eq!(pos.data, name);
+    assert_eq!(c.unwrap().position(0).x, x);
+    assert_eq!(c.unwrap().position(0).y, y);
+    assert_eq!(c.unwrap().position(0).z, z);
+}
+
 #[test]
-fn test_octree_3d() {
-    run_octree_3d_test();
+fn test_octree_2() {
+    // Create an octree with the shared cube boundary and capacity.
+    let boundary = BOUNDARY_CUBE;
+    let mut tree = Octree::new(&boundary, 1);
+    info!("Created octree with boundary: {:?}", boundary);
+
+    tree.insert(Point3D::new( 0.0,  0.0, 51.0, Some("A")));
+    tree.insert(Point3D::new( 0.0, 51.0, 51.0, Some("B")));
+    tree.insert(Point3D::new( 0.0,  0.0,  0.0, Some("C")));
+    tree.insert(Point3D::new( 0.0, 51.0,  0.0, Some("D")));
+    tree.insert(Point3D::new(51.0,  0.0, 51.0, Some("E")));
+    tree.insert(Point3D::new(51.0, 51.0, 51.0, Some("F")));
+    tree.insert(Point3D::new(51.0,  0.0,  0.0, Some("G")));
+    tree.insert(Point3D::new(51.0, 51.0,  0.0, Some("H")));
+
+    assert_eq!(tree.child_count(), 8);
+    assert_eq!(tree.max_positions(), 0);
+
+    do_node_test(tree.child(0), Some("C"),  0.0, 0.0,  0.0);
+    do_node_test(tree.child(1), Some("G"), 51.0, 0.0,  0.0);
+    do_node_test(tree.child(2), Some("D"),  0.0,51.0,  0.0);
+    do_node_test(tree.child(3), Some("H"), 51.0,51.0,  0.0);
+    do_node_test(tree.child(4), Some("A"),  0.0, 0.0, 51.0);
+    do_node_test(tree.child(5), Some("E"), 51.0, 0.0, 51.0);
+    do_node_test(tree.child(6), Some("B"),  0.0,51.0, 51.0);
+    do_node_test(tree.child(7), Some("F"), 51.0,51.0, 51.0);
 }

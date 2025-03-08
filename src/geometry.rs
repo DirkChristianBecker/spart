@@ -444,6 +444,13 @@ impl Cube {
         );
         extra
     }
+
+    pub fn center(&self) -> (f64, f64, f64) {
+        (   self.x + self.width / 2.0, 
+            self.y + self.height / 2.0, 
+            self.z + self.depth / 2.0
+        )
+    }
 }
 
 /// Trait for types that can provide the center and extent along a specified dimension.
